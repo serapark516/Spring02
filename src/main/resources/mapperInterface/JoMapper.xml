@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapperInterface.JoMapper">
+
+
+<sql id="search">
+	<if test="keyword!=null">
+		<bind name="keyVal" value="'%'+keyword+'%'"/>
+	</if>
+	<choose>
+		<when test="searchType=='j'.toString()">
+			and j.jno like #{keyVal} )
+		</when>
+		<when test="searchType=='c'.toString()">
+			and chief like #{keyVal} )
+		</when>
+		<when test="searchType=='jn'.toString()">
+			and jname like #{keyVal} )
+		</when>
+		<when test="searchType=='no'.toString()">
+			and note like #{keyVal} )
+		</when>
+		<otherwise>)</otherwise>
+	</choose>
+</sql>
+
+<select id="selectList" resultType="vo.JoVO">
+	select j.jno, j.chief, j.jname, j.note, m.name
+	from memjo j, member m
+	where j.chief = m.id
+</select>
+
+	<select id="searchList" resultType="vo.JoVO">
+		select j.jno, j.chief, j.jname, j.note, m.name from memjo j, member m
+		where (chief != "admin" and j.chief = m.id <include refid="search"></include>
+		limit #{sno}, #{rowsPerPage}
+	</select>
+	
+	<select id="searchCount" resultType="int">
+		select count(*) from memjo j
+		where (chief != "admin" <include refid="search"></include>
+	
+	</select>
+
+<!-- <select id="selectList" resultType="vo.JoVO">
+	select jno, chief, jname, note 
+	from memjo order by jno asc
+</select> -->
+
+
+
+<select id="selectOne" resultType="vo.JoVO">
+	select * from memjo where jno=#{jno}
+</select>
+<insert id="insert">
+	<selectKey keyProperty="jno" resultType="int" order="BEFORE">
+		select IFNULL(max(jno),0)+1 from memjo
+	</selectKey>
+	insert into memjo(jno, chief, jname, note) 
+	values(#{jno},#{chief},#{jname},#{note})
+</insert>
+
+<update id="update">
+	update memjo set chief=#{chief}, jname=#{jname}, note=#{note} where jno=#{jno}
+</update>	
+	
+<delete id="delete">
+	delete from memjo
+	<if test="jno==jno">where jno=#{jno}</if>
+</delete>
+</mapper>  
